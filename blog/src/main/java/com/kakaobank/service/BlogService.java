@@ -25,29 +25,35 @@ public class BlogService {
     @Value("${api.kakaobank.api-key}")
     String API_KEY;
     private final RestTemplate restTemplate;
+    private final BlogNaverService blogNaverService;
 
     public Page<BlogDocumentsResponseDto> searchBlog(BlogRequestDto blogRequestDto) {
 
-        String searchBlogURL = getUrl(blogRequestDto);
-        HttpEntity<Void> requestEntity = getHeader();
+        try {
+            String searchBlogURL = getUrl(blogRequestDto);
+            HttpEntity<Void> requestEntity = getHeader();
 
-        ResponseEntity<BlogResponseDto> blogResponseDtoResponseEntity = restTemplate.exchange(searchBlogURL, HttpMethod.GET, requestEntity, BlogResponseDto.class);
-        if (isNotSuccess(blogResponseDtoResponseEntity.getStatusCode())) {
-            log.error("kakao api error responseBody " + blogResponseDtoResponseEntity.getBody());
-            throw new RuntimeException("kakao api error");
+            ResponseEntity<BlogResponseDto> blogResponseDtoResponseEntity = restTemplate.exchange(searchBlogURL, HttpMethod.GET, requestEntity, BlogResponseDto.class);
+            if (isNotSuccess(blogResponseDtoResponseEntity.getStatusCode())) {
+                log.error("kakao api error responseBody " + blogResponseDtoResponseEntity.getBody());
+                throw new RuntimeException("kakao api error");
+            }
+
+            BlogResponseDto BlogResponseDto = blogResponseDtoResponseEntity.getBody();
+
+            Pageable pageable = PageRequest.of(blogRequestDto.getPage(), blogRequestDto.getSize());
+
+            Page<BlogDocumentsResponseDto> responseSearchBlog =
+                    new PageImpl<>(BlogResponseDto.getDocuments(),
+                            pageable, BlogResponseDto.getMeta().getTotalCount());
+
+            //TODO 조회수 증가
+
+            return responseSearchBlog;
+
+        } catch (Exception e) {
+            return blogNaverService.searchBlog(blogRequestDto);
         }
-
-        BlogResponseDto BlogResponseDto = blogResponseDtoResponseEntity.getBody();
-
-        Pageable pageable = PageRequest.of(blogRequestDto.getPage(), blogRequestDto.getSize());
-
-        Page<BlogDocumentsResponseDto> responseSearchBlog =
-                new PageImpl<>(BlogResponseDto.getDocuments(),
-                        pageable, BlogResponseDto.getMeta().getTotalCount());
-
-        //조회수 증가
-
-        return responseSearchBlog;
     }
 
     private boolean isNotSuccess(HttpStatus statusCode) {
