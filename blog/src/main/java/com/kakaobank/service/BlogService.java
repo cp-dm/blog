@@ -26,8 +26,10 @@ public class BlogService {
     String API_KEY;
     private final RestTemplate restTemplate;
     private final BlogNaverService blogNaverService;
+    private final BlogRankService blogRankService;
 
-    public Page<BlogDocumentsResponseDto> searchBlog(BlogRequestDto blogRequestDto) {
+    public Page<BlogDocumentsResponseDto> blog(BlogRequestDto blogRequestDto) {
+        Page<BlogDocumentsResponseDto> responseSearchBlog;
 
         try {
             String searchBlogURL = getUrl(blogRequestDto);
@@ -43,17 +45,15 @@ public class BlogService {
 
             Pageable pageable = PageRequest.of(blogRequestDto.getPage(), blogRequestDto.getSize());
 
-            Page<BlogDocumentsResponseDto> responseSearchBlog =
-                    new PageImpl<>(BlogResponseDto.getDocuments(),
-                            pageable, BlogResponseDto.getMeta().getTotalCount());
-
-            //TODO 조회수 증가
-
-            return responseSearchBlog;
+            responseSearchBlog = new PageImpl<>(BlogResponseDto.getDocuments(), pageable, BlogResponseDto.getMeta().getTotalCount());
 
         } catch (Exception e) {
-            return blogNaverService.searchBlog(blogRequestDto);
+            responseSearchBlog = blogNaverService.blog(blogRequestDto);
         }
+
+        blogRankService.saveRank(blogRequestDto.getQuery());
+
+        return responseSearchBlog;
     }
 
     private boolean isNotSuccess(HttpStatus statusCode) {

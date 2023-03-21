@@ -34,7 +34,7 @@ public class BlogNaverService {
     String CLIENT_SECRET;
 
     private final RestTemplate restTemplate;
-    public Page<BlogDocumentsResponseDto> searchBlog(BlogRequestDto blogRequestDto) {
+    public Page<BlogDocumentsResponseDto> blog(BlogRequestDto blogRequestDto) {
         String blogURL = getUrl(blogRequestDto);
 
         HttpHeaders httpHeaders = new HttpHeaders();

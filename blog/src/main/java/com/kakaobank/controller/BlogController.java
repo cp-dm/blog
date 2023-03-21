@@ -16,7 +16,8 @@ public class BlogController {
     private final BlogService blogService;
 
     @GetMapping("/blog")
-    public Page<BlogDocumentsResponseDto> searchBlog(@Valid BlogRequestDto blogRequestDto) {
-        return blogService.searchBlog(blogRequestDto);
+    public Page<BlogDocumentsResponseDto> blog(@Valid BlogRequestDto blogRequestDto) {
+        Page<BlogDocumentsResponseDto> blogDocumentsResponseDtoList = blogService.blog(blogRequestDto);
+        return blogDocumentsResponseDtoList;
     }
 }
